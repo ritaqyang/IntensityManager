@@ -1,0 +1,25 @@
+{
+  "name": "intensitymanager",
+  "version": "1.0.0",
+  "description": "A program that manages values by segments(intervals from -infinity to infinity) ",
+  "main": "index.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ritaqyang/IntensityManager.git"
+  },
+  "author": "Rita Yang",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ritaqyang/IntensityManager/issues"
+  },
+  "homepage": "https://github.com/ritaqyang/IntensityManager#readme",
+  "devDependencies": {
+    "jest": "^29.7.0"
+  }
+}
