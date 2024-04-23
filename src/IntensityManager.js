@@ -14,6 +14,7 @@ class IntensityManager {
 
     /**
      * Adds a specified amount of intensity to a range between two points.
+     * Checks left and right neighbors, updates map if necessary
      * @param {number} from - The start of the range (inclusive).
      * @param {number} to - The end of the range (exclusive).
      * @param {number} amount - The amount of intensity to add.
@@ -28,31 +29,29 @@ class IntensityManager {
         if (from >= to) {
             throw new Error("Invalid range: 'from' should be less than 'to'");
         }
-        //sort all keys in the map
-        const keys = Array.from(this.mp.keys()).sort((a, b) => a - b);
-        //ex. [[10,1],[20,2],[30,1]] 
-        //add(11,21,5)
-        // result: [[10,1],[11,6],[21,2],[30,1]] 
-        // need to store the value of the last segment left of 'from' and the value of the last segment left of 'to'
-        let leftFrom = 0;
-        let leftTo = 0; 
-        //Iterate through each key in the map 
-        for (let i = 0; i < keys.length; i++) {
-
-            if (keys[i] < from) { //store the value of last seg left of 'from'
-                leftFrom = this.mp.get(keys[i]);
-            }
         
+        const keys = Array.from(this.mp.keys()).sort((a, b) => a - b);//sort all keys in the map
+        //ex. [[10,1],[20,2],[30,1]] 
+        //add(12,21,5)
+        //result: [[10,1],[12,1+5],[21,2],[30,1]] 
+        // need to store the value of the last segment left of 'from' and the value of the last segment left of 'to'
+        let leftFrom = 0; //intensity value of last segment left of 'from' 
+        let leftTo = 0;  //intensity value of last segment left of 'to'
+        //Iterate through each key in the map
+        for (let i = 0; i < keys.length; i++) {
+            if (keys[i] <= from) { 
+                leftFrom = this.mp.get(keys[i]);  
+            }
             //add amount to all exising segments within the range
             if (keys[i] >= from && keys[i] < to) {
-                this.mp.set(keys[i], this.mp.get(keys[i]) + amount);
-                
+                    this.mp.set(keys[i], this.mp.get(keys[i]) + amount);
             }
             //reach the end of the range, break the loop
             if (keys[i] >= to) {
-                leftTo = this.mp.get(keys[i-1]);//the value of the last segment left of 'to'
+                if (i > 0) { leftTo = this.mp.get(keys[i - 1]);  }//store intensity value of last segment left of 'to'
                 break;
             }
+            
         }
         //add new from and to segments if they do not already exist
         if (!this.mp.has(from)) {
@@ -61,12 +60,13 @@ class IntensityManager {
         if (!this.mp.has(to)) {
             this.mp.set(to, leftTo);
         }
+        this.removeDuplicates();
 
     }
 
     /**
      * Sets the intensity for a specified range to a specified amount, overriding any previous values in the range.
-     * Adjusts neighboring segments on both left and right directions of the range and updates the map accordingly
+     * If the range doesn't exist, it will be created.
      * @param {number} from - The start of the range (inclusive).
      * @param {number} to - The end of the range (exclusive).
      * @param {number} amount - The intensity level to set.
@@ -81,11 +81,10 @@ class IntensityManager {
             throw new Error("Invalid range: 'from' should be less than 'to'");
         }
         const keys = Array.from(this.mp.keys()).sort((a, b) => a - b);//sort keys 
-        let next = 0; 
-        let lastValue = 0; 
-        //Iterate through each key in the map 
+        let lastValue = 0; //Store the intensity value of the last segment left of 'to'
+        
+        //Iterate through each key in the map
         for (let i = 0; i < keys.length; i++) {
-            next = i; 
             lastValue = this.mp.get(keys[i]); 
             //delete each key within range
             if (keys[i] >= from && keys[i] < to) {
@@ -97,7 +96,19 @@ class IntensityManager {
             }
         }
         this.mp.set(from, amount); //set new value for the segment
-        this.mp.set(to, lastValue); //set the subsequent segment with the value stored 
+        this.mp.set(to, lastValue); //set the subsequent segment (that is unaffected by this set call) with the value stored 
+        this.removeDuplicates(); //remove duplicates 
+    }
+    /**
+     * Removes any duplicate intensity values from the map.
+     */
+    removeDuplicates() {
+        const keys = Array.from(this.mp.keys()).sort((a, b) => a - b);
+        for (let i = 0; i < keys.length-2; i++) {
+            if (this.mp.get(keys[i]) === this.mp.get(keys[i + 1])) {
+                this.mp.delete(keys[i + 1]);
+            }
+        }
     }
 
     /**
